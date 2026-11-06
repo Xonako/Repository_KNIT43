@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FreightFlow\Models\*.cs" Link="Domain\Models\%(Filename)%(Extension)" />
+    <Compile Include="..\FreightFlow\Vehicles\*.cs" Link="Domain\Vehicles\%(Filename)%(Extension)" />
+    <Compile Include="..\FreightFlow\Participants\*.cs" Link="Domain\Participants\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,82 @@
+@model FreightStore
+@{
+    ViewData["Title"] = "Головна";
+    var fleet = Model.Dispatcher.Fleet;
+    var loads = Model.Broker.AllLoads;
+    var delivered = loads.Where(l => l.Status == LoadStatus.Delivered).ToList();
+}
+
+<h1 class="mb-4">FreightFlow - система вантажоперевезень</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted">Траків у парку</div>
+            <div class="fs-3">@fleet.Count</div>
+            <div class="small">вільних: @(fleet.Count(v => v.IsAvailable))</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted">На дошці</div>
+            <div class="fs-3">@(loads.Count(l => l.Status == LoadStatus.Posted))</div>
+            <div class="small">заброньовано: @(loads.Count(l => l.Status == LoadStatus.Booked))</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted">Доставлено</div>
+            <div class="fs-3">@delivered.Count</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="text-muted">Прибуток власника траків</div>
+            <div class="fs-3">@Ui.Money(Model.Dispatcher.GetTotalCarrierProfit())</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Учасники</h5>
+        <p class="mb-1"><b>Брокер:</b> @Model.Broker.Name, @Model.Broker.Phone - заробив @Ui.Money(Model.Broker.TotalEarned)</p>
+        <p class="mb-0"><b>Диспетчер:</b> @Model.Dispatcher.Name, @Model.Dispatcher.Phone - заробив @Ui.Money(Model.Dispatcher.TotalEarned)</p>
+    </div>
+</div>
+
+<h4>Звіт по виконаних рейсах</h4>
+@if (delivered.Count == 0)
+{
+    <p class="text-muted">Ще немає доставлених вантажів.</p>
+}
+else
+{
+    <table class="table table-bordered bg-white">
+        <thead>
+            <tr>
+                <th>#</th><th>Маршрут</th><th>Трак</th><th>Ставка</th>
+                <th>Собівартість</th><th>Брокеру</th><th>Диспетчеру</th><th>Прибуток</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in delivered)
+            {
+                <tr>
+                    <td>@l.Id</td>
+                    <td>@l.From → @l.To</td>
+                    <td>@l.AssignedVehicle.Id</td>
+                    <td>@Ui.Money(l.CarrierRate)</td>
+                    <td>@Ui.Money(l.AssignedVehicle.CalculateCost(l.Distance))</td>
+                    <td>@Ui.Money(Model.Broker.CalculateCommission(l))</td>
+                    <td>@Ui.Money(Model.Dispatcher.CalculateCommission(l))</td>
+                    <td>@Ui.Money(Model.Dispatcher.CalculateProfit(l, l.AssignedVehicle))</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<form asp-action="Reset" method="post" class="mt-4">
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Скинути дані до початкових</button>
+</form>

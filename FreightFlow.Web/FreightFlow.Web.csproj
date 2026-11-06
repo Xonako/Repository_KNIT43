@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FreightFlow\Models\*.cs" Link="Domain\Models\%(Filename)%(Extension)" />
+    <Compile Include="..\FreightFlow\Vehicles\*.cs" Link="Domain\Vehicles\%(Filename)%(Extension)" />
+    <Compile Include="..\FreightFlow\Participants\*.cs" Link="Domain\Participants\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,90 @@
+@model FreightStore
+@{
+    ViewData["Title"] = "Диспетчеризація";
+    var available = Model.Broker.GetAvailableLoads();
+    var booked = Model.Broker.AllLoads.Where(l => l.Status == LoadStatus.Booked).ToList();
+}
+
+<h1 class="mb-4">Диспетчеризація</h1>
+
+<h4>Вільні вантажі</h4>
+@if (available.Count == 0)
+{
+    <p class="text-muted">Вільних вантажів немає.</p>
+}
+else
+{
+    <table class="table table-bordered bg-white align-middle">
+        <thead>
+            <tr>
+                <th>#</th><th>Маршрут</th><th>Вага / тип</th><th>Ставка</th>
+                <th>Найкращий трак</th><th>Собівартість</th><th>Потрібна ставка</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in available)
+            {
+                var best = Model.Dispatcher.FindBestVehicle(l);
+                <tr>
+                    <td>@l.Id</td>
+                    <td>@l.From → @l.To (@l.Distance mi)</td>
+                    <td>@l.Weight lbs, @Ui.Cargo(l.Type)</td>
+                    <td>@Ui.Money(l.CarrierRate)</td>
+                    @if (best == null)
+                    {
+                        <td colspan="3" class="text-muted">немає вільного трака, що підходить</td>
+                    }
+                    else
+                    {
+                        <td>@best.Id (@best.Model)</td>
+                        <td>@Ui.Money(best.CalculateCost(l.Distance))</td>
+                        <td>@Ui.Money(Model.Dispatcher.CalculateRequiredRate(l, best))</td>
+                    }
+                    <td>
+                        <form asp-action="Book" asp-route-id="@l.Id" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Забронювати</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<h4 class="mt-4">Заброньовані</h4>
+@if (booked.Count == 0)
+{
+    <p class="text-muted">Немає заброньованих вантажів.</p>
+}
+else
+{
+    <table class="table table-bordered bg-white align-middle">
+        <thead>
+            <tr>
+                <th>#</th><th>Маршрут</th><th>Трак</th><th>Пальне</th><th>Час у дорозі</th>
+                <th>Ставка</th><th>Собівартість</th><th>Прибуток</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in booked)
+            {
+                var v = l.AssignedVehicle;
+                <tr>
+                    <td>@l.Id</td>
+                    <td>@l.From → @l.To (@l.Distance mi)</td>
+                    <td>@v.Id</td>
+                    <td>@v.CalculateFuelNeeded(l.Distance) gal</td>
+                    <td>@v.CalculateDeliveryTime(l.Distance) год</td>
+                    <td>@Ui.Money(l.CarrierRate)</td>
+                    <td>@Ui.Money(v.CalculateCost(l.Distance))</td>
+                    <td>@Ui.Money(Model.Dispatcher.CalculateProfit(l, v))</td>
+                    <td>
+                        <form asp-action="Deliver" asp-route-id="@l.Id" method="post">
+                            <button type="submit" class="btn btn-success btn-sm">Доставлено</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

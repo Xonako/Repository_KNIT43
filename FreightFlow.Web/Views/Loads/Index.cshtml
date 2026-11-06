@@ -1,0 +1,91 @@
+@model List<Load>
+@{
+    ViewData["Title"] = "Дошка вантажів";
+    CargoType? selected = ViewBag.Type;
+    decimal? minRate = ViewBag.MinRate;
+}
+
+<h1 class="mb-4">Дошка вантажів</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <select name="type" class="form-select">
+            <option value="">Усі типи</option>
+            <option value="General" selected="@(selected == CargoType.General)">Звичайний</option>
+            <option value="Refrigerated" selected="@(selected == CargoType.Refrigerated)">Рефрижераторний</option>
+            <option value="Fragile" selected="@(selected == CargoType.Fragile)">Крихкий</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <input name="minRate" type="number" step="any" min="0" value="@minRate" class="form-control" placeholder="Мін. ставка, $/милю" />
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary">Фільтрувати</button>
+        <a asp-action="Index" class="btn btn-link">Скинути</a>
+    </div>
+</form>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Вільних вантажів немає.</p>
+}
+else
+{
+    <table class="table table-bordered bg-white">
+        <thead>
+            <tr>
+                <th>#</th><th>Звідки</th><th>Куди</th><th>Відстань</th><th>Вага</th><th>Тип</th>
+                <th>Платить відправник</th><th>Ставка перевізнику</th><th>$/миля</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model)
+            {
+                <tr>
+                    <td>@l.Id</td>
+                    <td>@l.From</td>
+                    <td>@l.To</td>
+                    <td>@l.Distance mi</td>
+                    <td>@l.Weight lbs</td>
+                    <td>@Ui.Cargo(l.Type)</td>
+                    <td>@Ui.Money(l.ShipperPrice)</td>
+                    <td>@Ui.Money(l.CarrierRate)</td>
+                    <td>@l.RatePerMile</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5>Викласти вантаж (брокер)</h5>
+        <form asp-action="Add" method="post" class="row g-2">
+            <div class="col-md-2">
+                <input name="from" class="form-control" placeholder="Звідки" required />
+            </div>
+            <div class="col-md-2">
+                <input name="to" class="form-control" placeholder="Куди" required />
+            </div>
+            <div class="col-md-2">
+                <input name="distance" type="number" step="any" min="1" class="form-control" placeholder="Милі" required />
+            </div>
+            <div class="col-md-2">
+                <input name="weight" type="number" step="any" min="1" class="form-control" placeholder="Вага, lbs" required />
+            </div>
+            <div class="col-md-2">
+                <select name="type" class="form-select">
+                    <option value="General">Звичайний</option>
+                    <option value="Refrigerated">Рефрижераторний</option>
+                    <option value="Fragile">Крихкий</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input name="shipperPrice" type="number" step="any" min="1" class="form-control" placeholder="Ціна, $" required />
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Викласти</button>
+            </div>
+        </form>
+    </div>
+</div>
